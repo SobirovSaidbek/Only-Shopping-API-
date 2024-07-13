@@ -2,8 +2,10 @@ import threading
 
 from decouple import config
 from django.core.mail import send_mail
+from rest_framework import serializers
 from twilio.rest import Client
 
+from avtarizatsiya.models import VIA_EMAIL, VIA_PHONE
 from conf.settings import EMAIL_HOST
 
 
@@ -38,3 +40,23 @@ def send_code_phone(phone_number, code):
     thread.start()
 
     return True
+
+
+def check_email_or_phone_number(user_input):
+    if user_input.endswith('@gmail.com'):
+        data = {
+            'email': user_input,
+            'auth_type': VIA_EMAIL
+        }
+    elif user_input.startswith("+"):
+        data = {
+            'phone_number': user_input,
+            'auth_type': VIA_PHONE
+        }
+    else:
+        data = {
+            'success': False,
+            'message': "Please enter a valid phone number or email"
+        }
+        raise serializers.ValidationError(data)
+    return data
